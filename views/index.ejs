@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js" integrity="sha512-q/dWJ3kcmjBLU4Qc47E4A9kTB4m3wuTY7vkFJDTZKjTs8jhyGQnaUrxa0Ytd0ssMZhbNua9hE+E7Qv1j+DyZwA==" crossorigin="anonymous"></script>
+    <script defer>
+        const socket = io();
+        let message = []
+        const name = prompt("Enter Your Name")
+
+        localStorage.setItem("SSUID__USER__00" , name)
+
+        socket.on("connect" , () => {
+            console.log("Connect")
+        })
+        socket.emit("name", name)
+
+ 
+    
+
+        socket.on("message", (data) => {
+
+            let ul = document.querySelectorAll("ul")
+                var isThere = false
+                    for(var i =0 ; i< ul.length; i++) {
+                        if(ul[i].id === data.sender) {
+                            console.log("Ok")
+                            isThere = true
+                            let html = `<li>${data.msg} (${data.sender} sends this)</li>`
+                            document.getElementById(`${data.sender}`).innerHTML += html
+                           break
+                        }
+                    }
+
+                    if(!(isThere)) {
+                        let html = `<ul id = ${data.sender}> 
+                        <h1>${data.sender}</h1>
+                            <li>${data.msg} (${data.sender} sends this)</li>
+                        </ul>`
+                        document.querySelector(".main").innerHTML += html
+                   
+                    }
+                        
+        })
+
+     
+    
+        socket.on("oldmessages" , (msg) => {
+            console.log(msg)
+           
+          
+            msg.forEach((e) => {
+                let ul = document.querySelectorAll("ul")
+                var isThereReceive = false
+                var isThereSent = false
+                if(!e.isReceived && e.receiver){
+                    for(var i =0 ; i< ul.length; i++) {
+                        if(ul[i].id === e.receiver) {
+                            console.log("Yes From Another")
+                            isThereReceive = true
+                            let html = `<li>${e.msg} (You)</li>`
+                            document.getElementById(`${e.receiver}`).innerHTML += html
+                            console.log( document.getElementById(`${e.receiver}`))
+                           break
+                        }
+                    }
+
+                    if(!(isThereReceive)) {
+                        console.log("Yes")
+                        let html = `<ul id = ${e.receiver}> 
+                        <h1>${e.receiver}</h1>
+                            <li>${e.msg} (you)</li>
+                        </ul>`
+                        document.querySelector(".main").innerHTML += html
+                   
+                    }
+                        
+
+                    
+                       
+                    
+                   }else {
+                    for(var i =0 ; i< ul.length; i++) {
+                        if(ul[i].id === e.sender) {
+                            isThereSent = true
+                            let html = `<li>${e.msg} (${e.sender} sends this) </li>`
+                            document.getElementById(`${e.sender}`).innerHTML += html
+                            console.log( document.getElementById(`${e.receiver}`))
+                           break
+                        }
+                    }
+                    if(!(isThereSent)) {
+                        console.log("Yes")
+                        let html = `<ul id = ${e.sender}> 
+                        <h1>${e.sender} </h1>
+                            <li>${e.msg} (${e.sender} sends this)</li>
+                        </ul>`
+                        document.querySelector(".main").innerHTML += html
+                   
+                    }
+
+                   }
+                
+            })
+        })
+
+        socket.on("disconnect" , () => {
+            socket.emit("user-disconet")
+        })
+
+       
+
+    </script>
+
+        <div id = "heading"></div>
+
+        <input placeholder = "Write The User Name To Send The Msg" id = "user"  type = "text" />
+        <input placeholder = "Type The Msg" id = "msg-send" type = "text" name = "msg" />
+        <input id = "socket-id" hidden /> 
+        <button> Send Message </button>
+
+        <div class = "acive-users">
+            <div>
+            <h1>Users in this Chat App</h1>
+        <ul id = "active-connect" class = "active">
+        <%  found.forEach((user) => { %>
+
+            
+
+            <li>  
+                    <%= user.user %>
+                </li>
+
+        <% }) %>
+    </ul>
+</div>
+
+
+        </div>
+    
+        <div class = "main">     
+
+        </div>
+    <script defer>
+
+        document.querySelector("#heading").innerHTML = `<h4>You Connected as ${name}</h4>`
+        socket.on("id", data => {
+           
+            document.querySelector("#socket-id").value = data
+        
+
+        })
+       
+        socket.on("new-user", name => {
+            console.log(name)
+            document.querySelector("#active-connect").innerHTML += `<li>${name}</li>`
+        })
+        
+
+
+        document.querySelector("button").addEventListener("click" , (e) => {
+            
+        let data = {
+            user :  document.querySelector("#user").value,
+            msg : document.querySelector("#msg-send").value,
+            sender : document.querySelector("#socket-id").value
+        }
+            socket.emit("msg" , data)
+
+            let ul = document.querySelectorAll("ul")
+                var isThere = false
+                    for(var i =0 ; i< ul.length; i++) {
+                        if(ul[i].id === data.user) {
+                            console.log("Ok")
+                            isThere = true
+                            let html = `<li>${data.msg} (You)</li>`
+                            document.getElementById(`${data.user}`).innerHTML += html
+                           break
+                        }
+                    }
+
+                    if(!(isThere)) {
+                        let html = `<ul id = ${data.user}> 
+                        <h1>${data.user}</h1>
+                            <li>${data.msg} (you)</li>
+                        </ul>`
+                        document.querySelector(".main").innerHTML += html
+                   
+                    }
+                        
+
+
+
+
+
+
+
+
+    })
+        </script>
+
+</body>
+</html>
